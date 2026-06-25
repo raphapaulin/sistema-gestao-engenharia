@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Painel Inicial</p>
+        <h1>Sistema de Gestão de Engenharia</h1>
+      </div>
+      <span class="database-pill">SQLite: demo.db</span>
+    </div>
+
+    <div class="metric-grid">
+      <article class="metric-card">
+        <span>Clientes</span>
+        <strong>{{ metrics.total_clientes }}</strong>
+        <small>Cadastros ativos</small>
+      </article>
+      <article class="metric-card">
+        <span>Colaboradores</span>
+        <strong>{{ metrics.total_colaboradores }}</strong>
+        <small>Colaboradores cadastrados</small>
+      </article>
+      <article class="metric-card">
+        <span>Serviços</span>
+        <strong>{{ metrics.total_servicos }}</strong>
+        <small>Catálogo técnico</small>
+      </article>
+      <article class="metric-card">
+        <span>Ordens de Serviço</span>
+        <strong>{{ metrics.total_ordens }}</strong>
+        <small>Histórico operacional</small>
+      </article>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-md-4">
+        <article class="status-tile status-open">
+          <span>Ordens Abertas</span>
+          <strong>{{ metrics.ordens_abertas }}</strong>
+        </article>
+      </div>
+      <div class="col-12 col-md-4">
+        <article class="status-tile status-progress">
+          <span>Ordens em Andamento</span>
+          <strong>{{ metrics.ordens_em_andamento }}</strong>
+        </article>
+      </div>
+      <div class="col-12 col-md-4">
+        <article class="status-tile status-done">
+          <span>Ordens Concluídas</span>
+          <strong>{{ metrics.ordens_concluidas }}</strong>
+        </article>
+      </div>
+    </div>
+
+    <div class="finance-grid mt-3">
+      <article class="finance-card">
+        <span>Total Recebido</span>
+        <strong>{{ "R$ {:,.2f}".format(metrics.total_recebido).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+        <small>{{ metrics.pagamentos_pagos }} pagamentos pagos</small>
+      </article>
+      <article class="finance-card finance-pending">
+        <span>Total Pendente</span>
+        <strong>{{ "R$ {:,.2f}".format(metrics.total_pendente).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+        <small>{{ metrics.pagamentos_pendentes }} pagamentos pendentes</small>
+      </article>
+    </div>
+
+    <section class="summary-section mt-3" aria-labelledby="operational-summary-title">
+      <div class="panel-heading">
+        <h2 id="operational-summary-title">Resumo Operacional</h2>
+      </div>
+      <div class="operational-grid">
+        <article class="summary-card">
+          <span>Atividades cadastradas</span>
+          <strong>{{ operational_summary.total_atividades }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Horas registradas</span>
+          <strong>{{ operational_summary.total_horas_display }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Colaborador com mais horas</span>
+          {% if operational_summary.colaborador_mais_horas %}
+          <strong>{{ operational_summary.colaborador_mais_horas.nome }}</strong>
+          <small>{{ operational_summary.colaborador_mais_horas.duracao_display }}</small>
+          {% else %}
+          <strong>-</strong>
+          <small>Nenhuma atividade registrada</small>
+          {% endif %}
+        </article>
+        <article class="summary-card">
+          <span>Serviço mais solicitado</span>
+          {% if operational_summary.servico_mais_solicitado %}
+          <strong>{{ operational_summary.servico_mais_solicitado.nome }}</strong>
+          <small>{{ operational_summary.servico_mais_solicitado.total }} ordens</small>
+          {% else %}
+          <strong>-</strong>
+          <small>Nenhuma ordem registrada</small>
+          {% endif %}
+        </article>
+        <article class="summary-card">
+          <span>Cliente com mais ordens</span>
+          {% if operational_summary.cliente_mais_ordens %}
+          <strong>{{ operational_summary.cliente_mais_ordens.nome }}</strong>
+          <small>{{ operational_summary.cliente_mais_ordens.total }} ordens</small>
+          {% else %}
+          <strong>-</strong>
+          <small>Nenhuma ordem registrada</small>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-xl-4">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Ordens por Status</h2>
+          </div>
+          <div class="chart-box">
+            <canvas id="ordersStatusChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Pagamentos por Status</h2>
+          </div>
+          <div class="chart-box">
+            <canvas id="paymentsChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Atividades por Status</h2>
+          </div>
+          <div class="chart-box">
+            <canvas id="activitiesStatusChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-6">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Horas por Colaborador</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="hoursByCollaboratorChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-6">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Serviços Mais Solicitados</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="topServicesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-xl-6">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Últimas Atividades</h2>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Colaborador</th>
+                  <th>Data</th>
+                  <th>Horário</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for activity in recent_activities %}
+                <tr>
+                  <td>{{ activity.titulo }}</td>
+                  <td>{{ activity.colaborador }}</td>
+                  <td>{{ activity.data_atividade }}</td>
+                  <td>{{ activity.horario_display }}</td>
+                  <td><span class="status-badge">{{ activity.status_label }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="5" class="empty-state">Nenhuma atividade registrada.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-6">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Últimas Ordens</h2>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>OS</th>
+                  <th>Cliente</th>
+                  <th>Serviço</th>
+                  <th>Status</th>
+                  <th>Pagamento</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                  <td>#{{ order.id_ordem }}</td>
+                  <td>{{ order.cliente }}</td>
+                  <td>{{ order.servico }}</td>
+                  <td><span class="status-badge">{{ order.status_label }}</span></td>
+                  <td>
+                    <span class="payment-badge payment-{{ order.status_pagamento }}">
+                      {{ order.status_pagamento_label }}
+                    </span>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="5" class="empty-state">Nenhuma ordem registrada.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.dashboardData = {
+    ordersByStatus: {{ orders_by_status | tojson }},
+    paymentChart: {{ payment_chart | tojson }},
+    activitiesByStatus: {{ activities_by_status | tojson }},
+    hoursByCollaborator: {{ hours_by_colaborador | tojson }},
+    servicesMostRequested: {{ services_most_requested | tojson }}
+  };
+</script>
+<script src="{{ url_for('static', path='/js/dashboard.js') }}"></script>
+{% endblock %}

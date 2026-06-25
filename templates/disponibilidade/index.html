@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Disponibilidade{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Agenda da Equipe</p>
+        <h1>Disponibilidade</h1>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-primary" href="/cronograma">Ver Cronograma</a>
+        <a class="btn btn-primary" href="/atividades/nova">Nova Atividade</a>
+      </div>
+    </div>
+
+    <div class="table-panel mb-3">
+      <div class="panel-heading">
+        <h2>Consulta de Disponibilidade</h2>
+        <form class="filter-form row g-3 align-items-end mt-2" method="get" action="/disponibilidade">
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="id_colaborador">Colaborador</label>
+            <select class="form-select" id="id_colaborador" name="id_colaborador">
+              <option value="">Selecione um colaborador</option>
+              {% for colaborador in colaboradores %}
+              <option value="{{ colaborador.id }}" {% if colaborador.id|string == id_colaborador|string %}selected{% endif %}>{{ colaborador.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="data">Data</label>
+            <input class="form-control" id="data" type="date" name="data" value="{{ data }}">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="duracao_minutos">Duração estimada</label>
+            <input class="form-control" id="duracao_minutos" type="number" name="duracao_minutos" min="15" step="15" value="{{ duracao_minutos }}">
+          </div>
+          <div class="col-12 col-md-2 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Analisar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {% if analysis.errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in analysis.errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="alert alert-{{ analysis.message_type }}" role="alert">
+      {{ analysis.message }}
+    </div>
+
+    <div class="availability-grid mb-3">
+      <article class="summary-card">
+        <span>Colaborador</span>
+        <strong>{{ analysis.colaborador_nome or "-" }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Data analisada</span>
+        <strong>{{ analysis.data }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Duração desejada</span>
+        <strong>{{ analysis.duracao_display }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Janela simples</span>
+        <strong>{{ analysis.jornada_label }}</strong>
+      </article>
+    </div>
+
+    {% if analysis.selected and not analysis.errors %}
+    <div class="row g-3">
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Sugestão de Horário</h2>
+          </div>
+          <div class="availability-result">
+            {% if analysis.next_available %}
+            <span>Próximo horário disponível</span>
+            <strong>{{ analysis.next_available.label }}</strong>
+            <small>Duração: {{ analysis.next_available.duracao_display }}</small>
+            {% else %}
+            <span>Sem horário disponível</span>
+            <strong>-</strong>
+            <small>Não há intervalo livre suficiente no dia.</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Horários Ocupados</h2>
+          </div>
+          <div class="interval-list">
+            {% for interval in analysis.busy_intervals %}
+            <span class="time-chip busy">{{ interval.label }}</span>
+            {% else %}
+            <p class="text-muted mb-0">Nenhum horário ocupado no dia.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Intervalos Livres</h2>
+          </div>
+          <div class="interval-list">
+            {% for interval in analysis.free_intervals %}
+            <span class="time-chip free">{{ interval.label }}</span>
+            {% else %}
+            <p class="text-muted mb-0">Nenhum intervalo livre dentro da janela analisada.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-panel mt-3">
+      <div class="panel-heading">
+        <h2>Atividades Agendadas no Dia</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Horário</th>
+              <th>Duração</th>
+              <th>Título</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for atividade in analysis.atividades %}
+            <tr>
+              <td>#{{ atividade.id_atividade }}</td>
+              <td>{{ atividade.horario_display }}</td>
+              <td>{{ atividade.duracao_display }}</td>
+              <td>{{ atividade.titulo }}</td>
+              <td>{{ atividade.cliente or "-" }}</td>
+              <td>{{ atividade.servico or "-" }}</td>
+              <td><span class="status-badge">{{ atividade.status_label }}</span></td>
+              <td class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="/atividades/{{ atividade.id_atividade }}/editar">Editar</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="empty-state">Nenhuma atividade agendada para este colaborador nesta data.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

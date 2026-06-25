@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Apontamento de Horas{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Controle de Horas</p>
+        <h1>Apontamento de Horas</h1>
+        <p class="page-subtitle mb-0">Consulta detalhada das atividades e horas registradas por período.</p>
+      </div>
+      <a class="btn btn-outline-primary" href="/disponibilidade">Ver Disponibilidade</a>
+    </div>
+
+    <div class="table-panel mb-3">
+      <div class="panel-heading">
+        <h2>Filtros do Apontamento</h2>
+        <form class="filter-form row g-3 align-items-end mt-2" method="get" action="/relatorio-horas">
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="id_colaborador">Colaborador</label>
+            <select class="form-select" id="id_colaborador" name="id_colaborador">
+              <option value="">Todos os colaboradores</option>
+              {% for colaborador in colaboradores %}
+              <option value="{{ colaborador.id }}" {% if colaborador.id|string == id_colaborador|string %}selected{% endif %}>{{ colaborador.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="data_inicio">Data inicial</label>
+            <input class="form-control" id="data_inicio" type="date" name="data_inicio" value="{{ data_inicio }}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="data_fim">Data final</label>
+            <input class="form-control" id="data_fim" type="date" name="data_fim" value="{{ data_fim }}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="">Todos os status</option>
+              {% for status in status_options %}
+              <option value="{{ status.value }}" {% if status.value == status_filter %}selected{% endif %}>{{ status.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2 col-lg-1 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+          </div>
+          {% if id_colaborador or data_inicio or data_fim or status_filter %}
+          <div class="col-12 col-md-2 col-lg-1 d-grid">
+            <a class="btn btn-outline-secondary" href="/relatorio-horas">Limpar</a>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    {% if report.errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in report.errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="availability-grid mb-3">
+      <article class="summary-card">
+        <span>Total de atividades</span>
+        <strong>{{ report.summary.total_atividades }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Total de horas</span>
+        <strong>{{ report.summary.total_horas_display }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Concluídas</span>
+        <strong>{{ report.summary.atividades_concluidas }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Pendentes/em andamento</span>
+        <strong>{{ report.summary.atividades_pendentes }}</strong>
+      </article>
+    </div>
+
+    <div class="table-panel">
+      <div class="panel-heading">
+        <h2>Extrato de Atividades do Período</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>Duração</th>
+              <th>Título</th>
+              <th>Colaborador</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>OS</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for atividade in report.activities %}
+            <tr>
+              <td>#{{ atividade.id_atividade }}</td>
+              <td>{{ atividade.data_atividade }}</td>
+              <td>{{ atividade.hora_inicio or "-" }}</td>
+              <td>{{ atividade.hora_fim or "-" }}</td>
+              <td>{{ atividade.duracao_display }}</td>
+              <td>{{ atividade.titulo }}</td>
+              <td>{{ atividade.colaborador }}</td>
+              <td>{{ atividade.cliente or "-" }}</td>
+              <td>{{ atividade.servico or "-" }}</td>
+              <td>{% if atividade.id_ordem %}#{{ atividade.id_ordem }}{% else %}-{% endif %}</td>
+              <td><span class="status-badge">{{ atividade.status_label }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="11" class="empty-state">Nenhuma atividade encontrada para os filtros informados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

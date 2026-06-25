@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Pagamentos{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Financeiro</p>
+        <h1>Pagamentos</h1>
+      </div>
+      <a class="btn btn-primary" href="/pagamentos/novo">Novo Pagamento</a>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-panel">
+      <div class="panel-heading">
+        <h2>Pagamentos Cadastrados</h2>
+        <form class="filter-form row g-3 align-items-end mt-2" method="get" action="/pagamentos">
+          <div class="col-12 col-lg-4">
+            <label class="form-label" for="q">Pesquisa por cliente, serviço ou OS</label>
+            <input
+              class="form-control"
+              id="q"
+              type="search"
+              name="q"
+              value="{{ q }}"
+              placeholder="Cliente, serviço ou OS"
+            >
+          </div>
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="">Todos os status</option>
+              {% for status in status_options %}
+              <option value="{{ status.value }}" {% if status.value == status_filter %}selected{% endif %}>{{ status.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label" for="data_inicio">Data inicial</label>
+            <input class="form-control" id="data_inicio" type="date" name="data_inicio" value="{{ data_inicio }}">
+          </div>
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label" for="data_fim">Data final</label>
+            <input class="form-control" id="data_fim" type="date" name="data_fim" value="{{ data_fim }}">
+          </div>
+          <div class="col-12 col-md-4 col-lg-2 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+          </div>
+          {% if q or status_filter or data_inicio or data_fim %}
+          <div class="col-12 col-md-4 col-lg-2 d-grid">
+            <a class="btn btn-outline-secondary" href="/pagamentos">Limpar</a>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ordem de Serviço</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Data de pagamento</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pagamento in pagamentos %}
+            <tr>
+              <td>#{{ pagamento.id_pagamento }}</td>
+              <td>#{{ pagamento.id_ordem }}</td>
+              <td>{{ pagamento.cliente }}</td>
+              <td>{{ pagamento.servico }}</td>
+              <td>{{ pagamento.valor_display }}</td>
+              <td><span class="payment-badge payment-{{ pagamento.status }}">{{ pagamento.status_label }}</span></td>
+              <td>{{ pagamento.data_pagamento or "-" }}</td>
+              <td class="table-actions payment-actions">
+                <form method="post" action="/pagamentos/{{ pagamento.id_pagamento }}/status">
+                  <input type="hidden" name="status" value="pago">
+                  <button class="btn btn-sm btn-outline-success" type="submit">Marcar Pago</button>
+                </form>
+                <form method="post" action="/pagamentos/{{ pagamento.id_pagamento }}/status">
+                  <input type="hidden" name="status" value="pendente">
+                  <button class="btn btn-sm btn-outline-warning" type="submit">Marcar Pendente</button>
+                </form>
+                <a class="btn btn-sm btn-outline-primary" href="/pagamentos/{{ pagamento.id_pagamento }}/editar">Editar</a>
+                <form method="post" action="/pagamentos/{{ pagamento.id_pagamento }}/excluir" onsubmit="return confirm('Confirmar exclusão deste pagamento?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="empty-state">
+                Nenhum pagamento encontrado.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

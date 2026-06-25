@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Performance{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Equipe</p>
+        <h1>Performance dos Colaboradores</h1>
+        <p class="page-subtitle mb-0">Visão gerencial de produtividade e desempenho da equipe.</p>
+      </div>
+      <a class="btn btn-outline-primary" href="/relatorio-horas">Apontamento de Horas</a>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <div class="table-panel mb-3">
+      <div class="panel-heading">
+        <h2>Filtros de Análise</h2>
+        <form class="filter-form row g-3 align-items-end mt-2" method="get" action="/performance">
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="id_colaborador">Colaborador</label>
+            <select class="form-select" id="id_colaborador" name="id_colaborador">
+              <option value="">Todos os colaboradores</option>
+              {% for colaborador in colaboradores %}
+              <option value="{{ colaborador.id }}" {% if colaborador.id|string == id_colaborador|string %}selected{% endif %}>{{ colaborador.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="data_inicio">Data inicial</label>
+            <input class="form-control" id="data_inicio" type="date" name="data_inicio" value="{{ data_inicio }}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="data_fim">Data final</label>
+            <input class="form-control" id="data_fim" type="date" name="data_fim" value="{{ data_fim }}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="">Todos os status</option>
+              {% for status in status_options %}
+              <option value="{{ status.value }}" {% if status.value == status_filter %}selected{% endif %}>{{ status.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2 col-lg-1 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+          </div>
+          {% if id_colaborador or data_inicio or data_fim or status_filter %}
+          <div class="col-12 col-md-2 col-lg-1 d-grid">
+            <a class="btn btn-outline-secondary" href="/performance">Limpar</a>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    {% if performance.errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in performance.errors %}
+      <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="performance-summary-grid mb-3">
+      <article class="summary-card">
+        <span>Colaboradores analisados</span>
+        <strong>{{ performance.summary.total_colaboradores }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Total de atividades</span>
+        <strong>{{ performance.summary.total_atividades }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Horas registradas</span>
+        <strong>{{ performance.summary.total_horas_display }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Concluídas</span>
+        <strong>{{ performance.summary.atividades_concluidas }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Pendentes/em andamento</span>
+        <strong>{{ performance.summary.atividades_pendentes }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>Mais horas</span>
+        {% if performance.summary.colaborador_mais_horas %}
+        <strong>{{ performance.summary.colaborador_mais_horas.nome }}</strong>
+        <small>{{ performance.summary.colaborador_mais_horas.total_horas_display }}</small>
+        {% else %}
+        <strong>-</strong>
+        <small>Sem horas registradas</small>
+        {% endif %}
+      </article>
+      <article class="summary-card">
+        <span>Mais concluídas</span>
+        {% if performance.summary.colaborador_mais_concluidas %}
+        <strong>{{ performance.summary.colaborador_mais_concluidas.nome }}</strong>
+        <small>{{ performance.summary.colaborador_mais_concluidas.concluidas }} atividades</small>
+        {% else %}
+        <strong>-</strong>
+        <small>Sem atividades concluídas</small>
+        {% endif %}
+      </article>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Colaborador Mais Ocupado</h2>
+          </div>
+          <div class="availability-result">
+            {% if performance.summary.colaborador_mais_horas %}
+            <span>Maior carga registrada</span>
+            <strong>{{ performance.summary.colaborador_mais_horas.nome }}</strong>
+            <small>{{ performance.summary.colaborador_mais_horas.total_horas_display }}</small>
+            {% else %}
+            <span>Sem registros</span>
+            <strong>-</strong>
+            <small>Nenhuma atividade com duração registrada.</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Maior Taxa de Conclusão</h2>
+          </div>
+          <div class="availability-result">
+            {% if performance.summary.colaborador_maior_taxa %}
+            <span>Melhor percentual</span>
+            <strong>{{ performance.summary.colaborador_maior_taxa.nome }}</strong>
+            <small>{{ performance.summary.colaborador_maior_taxa.percentual_conclusao_display }}% de conclusão</small>
+            {% else %}
+            <span>Sem registros</span>
+            <strong>-</strong>
+            <small>Nenhuma atividade no período.</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-4">
+        <div class="table-panel h-100">
+          <div class="panel-heading">
+            <h2>Horas da Equipe</h2>
+          </div>
+          <div class="availability-result">
+            <span>Total do período</span>
+            <strong>{{ performance.summary.total_horas_display }}</strong>
+            <small>{{ performance.summary.total_atividades }} atividades analisadas</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-xl-6">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Horas por Colaborador</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="performanceHoursChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-6">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Atividades por Colaborador</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="performanceActivitiesChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-7">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Concluídas x Pendentes por Colaborador</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="performanceCompletionChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-xl-5">
+        <div class="chart-panel h-100">
+          <div class="panel-heading">
+            <h2>Status das Atividades</h2>
+          </div>
+          <div class="chart-box chart-box-wide">
+            <canvas id="performanceStatusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="panel-heading">
+        <h2>Resumo por Colaborador</h2>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Colaborador</th>
+              <th>Função/Cargo</th>
+              <th>Total</th>
+              <th>Planejadas</th>
+              <th>Em andamento</th>
+              <th>Concluídas</th>
+              <th>Canceladas</th>
+              <th>Horas</th>
+              <th>Média</th>
+              <th>Conclusão</th>
+              <th class="text-end">Detalhes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for colaborador in performance.performance_rows %}
+            <tr>
+              <td>{{ colaborador.nome }}</td>
+              <td>{{ colaborador.cargo }}</td>
+              <td>{{ colaborador.total_atividades }}</td>
+              <td>{{ colaborador.planejadas }}</td>
+              <td>{{ colaborador.em_andamento }}</td>
+              <td>{{ colaborador.concluidas }}</td>
+              <td>{{ colaborador.canceladas }}</td>
+              <td>{{ colaborador.total_horas_display }}</td>
+              <td>{{ colaborador.tempo_medio_display }}</td>
+              <td>
+                <div class="completion-cell">
+                  <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{ colaborador.percentual_conclusao }}%;" aria-valuenow="{{ colaborador.percentual_conclusao }}" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <span>{{ colaborador.percentual_conclusao_display }}%</span>
+                </div>
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="/performance/{{ colaborador.id_colaborador }}{% if detail_query %}?{{ detail_query }}{% endif %}">Ver detalhe</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="11" class="empty-state">Nenhum colaborador encontrado para os filtros informados.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.performanceData = {{ performance.charts | tojson }};
+</script>
+<script src="{{ url_for('static', path='/js/performance.js') }}"></script>
+{% endblock %}

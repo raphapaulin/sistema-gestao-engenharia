@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Atividades{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Cronograma</p>
+        <h1>Atividades</h1>
+      </div>
+      <a class="btn btn-primary" href="/atividades/nova">Nova Atividade</a>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-panel">
+      <div class="panel-heading">
+        <h2>Atividades Cadastradas</h2>
+        <form class="filter-form row g-3 align-items-end mt-2" method="get" action="/atividades">
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label" for="id_colaborador">Colaborador</label>
+            <select class="form-select" id="id_colaborador" name="id_colaborador">
+              <option value="">Todos os colaboradores</option>
+              {% for colaborador in colaboradores %}
+              <option value="{{ colaborador.id }}" {% if colaborador.id|string == id_colaborador|string %}selected{% endif %}>{{ colaborador.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label" for="id_cliente">Cliente</label>
+            <select class="form-select" id="id_cliente" name="id_cliente">
+              <option value="">Todos os clientes</option>
+              {% for cliente in clientes %}
+              <option value="{{ cliente.id }}" {% if cliente.id|string == id_cliente|string %}selected{% endif %}>{{ cliente.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label" for="id_servico">Serviço</label>
+            <select class="form-select" id="id_servico" name="id_servico">
+              <option value="">Todos os serviços</option>
+              {% for servico in servicos %}
+              <option value="{{ servico.id }}" {% if servico.id|string == id_servico|string %}selected{% endif %}>{{ servico.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="">Todos os status</option>
+              {% for status in status_options %}
+              <option value="{{ status.value }}" {% if status.value == status_filter %}selected{% endif %}>{{ status.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label" for="data_inicio">Data inicial</label>
+            <input class="form-control" id="data_inicio" type="date" name="data_inicio" value="{{ data_inicio }}">
+          </div>
+          <div class="col-12 col-md-4 col-lg-2">
+            <label class="form-label" for="data_fim">Data final</label>
+            <input class="form-control" id="data_fim" type="date" name="data_fim" value="{{ data_fim }}">
+          </div>
+          <div class="col-12 col-md-4 col-lg-2 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+          </div>
+          {% if id_colaborador or id_cliente or id_servico or status_filter or data_inicio or data_fim %}
+          <div class="col-12 col-md-4 col-lg-2 d-grid">
+            <a class="btn btn-outline-secondary" href="/atividades">Limpar</a>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Horário</th>
+              <th>Duração</th>
+              <th>Título</th>
+              <th>Colaborador</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>OS</th>
+              <th>Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for atividade in atividades %}
+            <tr>
+              <td>#{{ atividade.id_atividade }}</td>
+              <td>{{ atividade.data_atividade }}</td>
+              <td>{{ atividade.horario_display }}</td>
+              <td>{{ atividade.duracao_display }}</td>
+              <td>{{ atividade.titulo }}</td>
+              <td>{{ atividade.colaborador }}</td>
+              <td>{{ atividade.cliente or "-" }}</td>
+              <td>{{ atividade.servico or "-" }}</td>
+              <td>{% if atividade.id_ordem %}#{{ atividade.id_ordem }}{% else %}-{% endif %}</td>
+              <td>
+                <form class="status-update-form" method="post" action="/atividades/{{ atividade.id_atividade }}/status">
+                  <select class="form-select form-select-sm" name="status" aria-label="Alterar status da atividade #{{ atividade.id_atividade }}">
+                    {% for status in status_options %}
+                    <option value="{{ status.value }}" {% if status.value == atividade.status %}selected{% endif %}>{{ status.label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn btn-sm btn-outline-primary" type="submit">Atualizar</button>
+                </form>
+              </td>
+              <td class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="/atividades/{{ atividade.id_atividade }}/editar">Editar</a>
+                <form method="post" action="/atividades/{{ atividade.id_atividade }}/excluir" onsubmit="return confirm('Confirmar exclusão desta atividade?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="11" class="empty-state">
+                Nenhuma atividade encontrada.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

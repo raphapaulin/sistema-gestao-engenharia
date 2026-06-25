@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Ordens de Serviço{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Operação</p>
+        <h1>Ordens de Serviço</h1>
+      </div>
+      <a class="btn btn-primary" href="/ordens/nova">Nova Ordem de Serviço</a>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-panel">
+      <div class="panel-heading clients-toolbar">
+        <h2>Ordens Cadastradas</h2>
+        <form class="client-search" method="get" action="/ordens">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            value="{{ q }}"
+            placeholder="Pesquisar por cliente, colaborador, serviço ou status"
+            aria-label="Pesquisar ordens de serviço"
+          >
+          <button class="btn btn-outline-primary" type="submit">Pesquisar</button>
+          {% if q %}
+          <a class="btn btn-outline-secondary" href="/ordens">Limpar</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data de abertura</th>
+              <th>Cliente</th>
+              <th>Colaborador responsável</th>
+              <th>Serviço</th>
+              <th>Status</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ordem in ordens %}
+            <tr>
+              <td>#{{ ordem.id_ordem }}</td>
+              <td>{{ ordem.data_abertura }}</td>
+              <td>{{ ordem.cliente }}</td>
+              <td>{{ ordem.colaborador }}</td>
+              <td>{{ ordem.servico }}</td>
+              <td>
+                <form class="status-update-form" method="post" action="/ordens/{{ ordem.id_ordem }}/status">
+                  <select class="form-select form-select-sm" name="status" aria-label="Alterar status da ordem #{{ ordem.id_ordem }}">
+                    {% for status in status_options %}
+                    <option value="{{ status.value }}" {% if status.value == ordem.status %}selected{% endif %}>{{ status.label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn btn-sm btn-outline-primary" type="submit">Atualizar</button>
+                </form>
+              </td>
+              <td class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="/ordens/{{ ordem.id_ordem }}/editar">Editar</a>
+                <form method="post" action="/ordens/{{ ordem.id_ordem }}/excluir" onsubmit="return confirm('Confirmar exclusão desta ordem de serviço?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="empty-state">
+                Nenhuma ordem de serviço encontrada.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

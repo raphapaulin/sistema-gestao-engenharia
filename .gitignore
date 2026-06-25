@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+*.env
+data/*.db
+!data/demo.db
+data/producao.db
+data/dev.db
+data/*.sqlite
+data/*.sqlite3
+docs/*.db
+backups/
+*.db-wal
+*.db-shm
+.DS_Store

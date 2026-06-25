@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | {{ form_title }}{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Atividades</p>
+        <h1>{{ form_title }}</h1>
+      </div>
+      <a class="btn btn-outline-secondary" href="/atividades">Voltar</a>
+    </div>
+
+    {% if errors %}
+    <div class="alert alert-danger" role="alert">
+      <strong>Corrija os campos abaixo.</strong>
+      <ul class="mb-0 mt-2">
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="form-panel">
+      <form method="post" action="{{ form_action }}">
+        <div class="row g-3">
+          <div class="col-12 col-md-8">
+            <label class="form-label" for="titulo">Título</label>
+            <input class="form-control" id="titulo" name="titulo" value="{{ atividade.titulo }}" required>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="status">Status</label>
+            <select class="form-select" id="status" name="status" required>
+              {% for status in status_options %}
+              <option value="{{ status.value }}" {% if status.value == atividade.status %}selected{% endif %}>{{ status.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="descricao">Descrição</label>
+            <textarea class="form-control" id="descricao" name="descricao" rows="3">{{ atividade.descricao or '' }}</textarea>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="data_atividade">Data</label>
+            <input class="form-control" id="data_atividade" name="data_atividade" type="date" value="{{ atividade.data_atividade }}" required>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="hora_inicio">Hora de início</label>
+            <input class="form-control" id="hora_inicio" name="hora_inicio" type="time" value="{{ atividade.hora_inicio }}" required>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="hora_fim">Hora de fim</label>
+            <input class="form-control" id="hora_fim" name="hora_fim" type="time" value="{{ atividade.hora_fim }}" required>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_colaborador">Colaborador</label>
+            <select class="form-select" id="id_colaborador" name="id_colaborador" required>
+              <option value="">Selecione</option>
+              {% for colaborador in colaboradores %}
+              <option value="{{ colaborador.id }}" {% if colaborador.id|string == atividade.id_colaborador|string %}selected{% endif %}>
+                {{ colaborador.label }}{% if colaborador.cargo %} - {{ colaborador.cargo }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_ordem">Ordem de Serviço</label>
+            <select class="form-select" id="id_ordem" name="id_ordem">
+              <option value="">Atividade interna ou sem OS</option>
+              {% for ordem in ordens %}
+              <option value="{{ ordem.id }}" {% if ordem.id|string == atividade.id_ordem|string %}selected{% endif %}>
+                OS #{{ ordem.id }} - {{ ordem.cliente }} - {{ ordem.servico }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_cliente">Cliente</label>
+            <select class="form-select" id="id_cliente" name="id_cliente">
+              <option value="">Sem cliente vinculado</option>
+              {% for cliente in clientes %}
+              <option value="{{ cliente.id }}" {% if cliente.id|string == atividade.id_cliente|string %}selected{% endif %}>{{ cliente.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="id_servico">Serviço</label>
+            <select class="form-select" id="id_servico" name="id_servico">
+              <option value="">Sem serviço vinculado</option>
+              {% for servico in servicos %}
+              <option value="{{ servico.id }}" {% if servico.id|string == atividade.id_servico|string %}selected{% endif %}>{{ servico.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="observacoes">Observações</label>
+            <textarea class="form-control" id="observacoes" name="observacoes" rows="3">{{ atividade.observacoes or '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" href="/atividades">Cancelar</a>
+          <button class="btn btn-primary" type="submit">Salvar Atividade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

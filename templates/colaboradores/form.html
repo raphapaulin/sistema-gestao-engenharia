@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | {{ form_title }}{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Equipe</p>
+        <h1>{{ form_title }}</h1>
+      </div>
+      <a class="btn btn-outline-secondary" href="/colaboradores">Voltar</a>
+    </div>
+
+    {% if errors %}
+    <div class="alert alert-danger" role="alert">
+      <strong>Corrija os campos abaixo.</strong>
+      <ul class="mb-0 mt-2">
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="form-panel">
+      <form method="post" action="{{ form_action }}">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="nome">Nome</label>
+            <input class="form-control" id="nome" name="nome" value="{{ colaborador.nome }}" required>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="cargo">Função/Cargo</label>
+            <input class="form-control" id="cargo" name="cargo" list="cargo-options" value="{{ colaborador.cargo }}" required>
+            <datalist id="cargo-options">
+              {% for cargo in cargo_options %}
+              <option value="{{ cargo }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="tipo_vinculo">Tipo de Vínculo/Perfil</label>
+            <input class="form-control" id="tipo_vinculo" name="tipo_vinculo" list="tipo-vinculo-options" value="{{ colaborador.tipo_vinculo or '' }}">
+            <datalist id="tipo-vinculo-options">
+              {% for tipo_vinculo in tipo_vinculo_options %}
+              <option value="{{ tipo_vinculo }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="registro_profissional">Registro Profissional/CREA</label>
+            <input class="form-control" id="registro_profissional" name="registro_profissional" value="{{ colaborador.registro_profissional or '' }}">
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="telefone">Telefone</label>
+            <input class="form-control" id="telefone" name="telefone" value="{{ colaborador.telefone or '' }}">
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="email">E-mail</label>
+            <input class="form-control" id="email" name="email" type="email" value="{{ colaborador.email or '' }}">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" href="/colaboradores">Cancelar</a>
+          <button class="btn btn-primary" type="submit">Salvar Colaborador</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

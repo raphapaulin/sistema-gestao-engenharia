@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Colaboradores{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Equipe</p>
+        <h1>Colaboradores</h1>
+      </div>
+      <a class="btn btn-primary" href="/colaboradores/novo">Novo Colaborador</a>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-panel">
+      <div class="panel-heading clients-toolbar">
+        <h2>Equipe Cadastrada</h2>
+        <form class="client-search" method="get" action="/colaboradores">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            value="{{ q }}"
+            placeholder="Pesquisar por nome, função, e-mail, telefone ou registro"
+            aria-label="Pesquisar colaboradores"
+          >
+          <button class="btn btn-outline-primary" type="submit">Pesquisar</button>
+          {% if q %}
+          <a class="btn btn-outline-secondary" href="/colaboradores">Limpar</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Função/Cargo</th>
+              <th>Perfil/Vínculo</th>
+              <th>Telefone</th>
+              <th>E-mail</th>
+              <th>Registro/CREA</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for colaborador in colaboradores %}
+            <tr>
+              <td>#{{ colaborador.id_colaborador }}</td>
+              <td>{{ colaborador.nome }}</td>
+              <td>{{ colaborador.cargo }}</td>
+              <td>{{ colaborador.tipo_vinculo or "-" }}</td>
+              <td>{{ colaborador.telefone or "-" }}</td>
+              <td>{{ colaborador.email or "-" }}</td>
+              <td>{{ colaborador.registro_profissional or "-" }}</td>
+              <td class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="/colaboradores/{{ colaborador.id_colaborador }}/editar">Editar</a>
+                <form method="post" action="/colaboradores/{{ colaborador.id_colaborador }}/excluir" onsubmit="return confirm('Confirmar exclusão deste colaborador?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="empty-state">
+                Nenhum colaborador encontrado.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

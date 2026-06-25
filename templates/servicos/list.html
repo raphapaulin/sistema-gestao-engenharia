@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema de Gestão de Engenharia | Serviços{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container-fluid px-4 py-4">
+    <div class="page-heading">
+      <div>
+        <p class="section-kicker mb-1">Catálogo Técnico</p>
+        <h1>Serviços</h1>
+      </div>
+      <a class="btn btn-primary" href="/servicos/novo">Novo Serviço</a>
+    </div>
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ error }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endif %}
+
+    <div class="table-panel">
+      <div class="panel-heading clients-toolbar">
+        <h2>Serviços Cadastrados</h2>
+        <form class="client-search" method="get" action="/servicos">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            value="{{ q }}"
+            placeholder="Pesquisar por nome ou descrição"
+            aria-label="Pesquisar serviços"
+          >
+          <button class="btn btn-outline-primary" type="submit">Pesquisar</button>
+          {% if q %}
+          <a class="btn btn-outline-secondary" href="/servicos">Limpar</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Preço base</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for servico in servicos %}
+            <tr>
+              <td>#{{ servico.id_servico }}</td>
+              <td>{{ servico.nome }}</td>
+              <td>{{ servico.descricao or "-" }}</td>
+              <td>{{ servico.preco_base_display }}</td>
+              <td class="table-actions">
+                <a class="btn btn-sm btn-outline-primary" href="/servicos/{{ servico.id_servico }}/editar">Editar</a>
+                <form method="post" action="/servicos/{{ servico.id_servico }}/excluir" onsubmit="return confirm('Confirmar exclusão deste serviço?');">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="empty-state">
+                Nenhum serviço encontrado.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
